@@ -6,6 +6,74 @@ namespace Orange
 
     public class Input
     {
+		
+		public class TrackBall
+        {
+            /// <summary>
+            /// Dodanie punktu wykrywanie trackballa. 
+            /// Rozmiar ekranu jest przeskalowany do wartości float z zakresu [0 : 1]
+            /// Punktem (0,0) jest lewy górny narożnik ekranu.
+            /// </summary>
+            /// <param name="leftLimit">Ogrniczenie z lewej strony [0 : 1]</param>
+            /// <param name="rightLimit">Ograniczenie z prawej strony [0 : 1]</param>
+            /// <param name="topLimit">Ograniczenie z góry [0 : 1]</param>
+            /// <param name="bottomLimit">Ograniczenie z dołu [0 : 1]</param>
+            /// <param name="radius">Promień maksymalnego wychylenia trackballa</param>
+            public TrackBall(float leftLimit, float rightLimit, float topLimit, float bottomLimit, float radius)
+            {
+                this.leftLimit = leftLimit;
+                this.rightLimit = rightLimit;
+                this.bottomLimit = bottomLimit;
+                this.topLimit = topLimit;
+                this.radius = radius;
+            }
+
+            private bool inTouch = false;
+            private Vector2 position0;
+            private int fingerID;
+            public float leftLimit;
+            public float rightLimit;
+            public float topLimit;
+            public float bottomLimit;
+            public float radius;
+            public Vector2 GetAxis()
+            {
+               if (inTouch)
+               {
+                   for (int i = 0; i < UnityEngine.Input.touchCount; i++)
+                   {
+                        if (UnityEngine.Input.touches[i].fingerId == fingerID)
+                        {
+                            Vector2 position = UnityEngine.Input.touches[i].position;
+                            position = new Vector2(position.x / Screen.width, position.y / Screen.height);
+                            Vector2 vector = new Vector2(position.x - position0.x , position.y - position0.y);
+                            vector = new Vector2(Math.MinMaxLimit(vector.x,-radius,radius), Math.MinMaxLimit(vector.y,-radius,radius));
+                            vector = new Vector2((vector.x / radius) * 10f, (vector.y / radius) * 10f);
+                            return vector;
+                        }
+                    }
+                   inTouch = false;
+               }
+               else
+               {
+                   for (int i = 0; i < UnityEngine.Input.touchCount; i++)
+                   {
+                        Vector2 position = UnityEngine.Input.touches[i].position;
+                        position = new Vector2(position.x / Screen.width, position.y / Screen.height);
+                        if (position.x > leftLimit && position.x < rightLimit && position.y > topLimit && position.y < bottomLimit)
+                        {
+                            fingerID = UnityEngine.Input.touches[i].fingerId;
+                            position0 = position;
+                            inTouch = true;
+                        }
+                    }
+                }
+                return new Vector2(0, 0);
+            }
+        }
+	
+	
+	
         /// <summary>
         /// Pobiera klawisz z klawiatury i dodaje znak do ciągu.
         /// </summary>
