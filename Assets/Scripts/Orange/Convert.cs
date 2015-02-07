@@ -3,7 +3,7 @@ using System.Collections;
 
 namespace Orange
 {
-    public class Convert
+    public static class Convert
     {
         /// <summary>
         /// Konwertuje element typu Vector3 to Vector2 (usuwa współrzędną Z).

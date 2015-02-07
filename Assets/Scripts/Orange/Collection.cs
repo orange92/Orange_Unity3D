@@ -2,7 +2,7 @@
 
 namespace Orange
 {
-    public class Element
+    public static class Collection
     {
         /// <summary>
         /// Zamienia wartości elementów miejscami.
@@ -10,7 +10,7 @@ namespace Orange
         /// <typeparam name="T"></typeparam>
         /// <param name="x"></param>
         /// <param name="y"></param>
-        /// <returns></returns>
+        /// <returns>Informacja czy operacja się powiodła.</returns>
         public static bool Swap<T>(ref T x, ref T y)
         {
             try

@@ -7,14 +7,17 @@ namespace Orange
 {
     public static class Math
     {
+
         public static float MaxLimit(float number, float maxLimit)
         {
             return number > maxLimit ? maxLimit : number;
         }
+        
         public static float MinLimit(float number, float minLimit)
         {
             return number < minLimit ? minLimit : number;
         }
+        
         public static float MinMaxLimit(float number, float minLimit, float maxLimit)
         {
             if (minLimit > maxLimit) throw new Exception("Min limit is greater then max limit.");
@@ -22,14 +25,17 @@ namespace Orange
             if(number > maxLimit) return maxLimit;
             return number;
         }
+        
         public static int MaxLimit(int number, int maxLimit)
         {
             return number > maxLimit ? maxLimit : number;
         }
+        
         public static int MinLimit(int number, int minLimit)
         {
             return number < minLimit ? minLimit : number;
         }
+        
         public static int MinMaxLimit(int number, int minLimit, int maxLimit)
         {
             if (minLimit > maxLimit) throw new Exception("Min limit is greater then max limit.");
@@ -37,7 +43,6 @@ namespace Orange
             if (number > maxLimit) return maxLimit;
             return number;
         }
-
 
         /// <summary>
         /// Pobiera ilość obrotów na minutę i zwraca prędkość w km/h
@@ -60,7 +65,6 @@ namespace Orange
         /// <param name="current">Aktualny kąt [0 - 360].</param>
         /// <param name="direction">Kąt oczekiwany [0 - 360].</param>
         /// <returns>Kąt [-180 - 180]</returns>
- 
         public static float DeflectionAngle(float current, float direction)
         {
             if (current < direction) current += 360;

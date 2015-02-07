@@ -4,9 +4,13 @@ using System.Collections;
 namespace Orange
 {
 
-    public class Input
+    public static class Input
     {
-		
+		/// <summary>
+		/// Wirtualny TrackBall. Wirtualny dwuosiowy analog na ekranie sterowany palcem.
+        /// Położenie trackballa jest definiowane zakresem i może on zmieniać swoje położenie w ramach zakresu.
+        /// Rozmiar trackballa jest stały.
+		/// </summary>
 		public class TrackBall
         {
             /// <summary>
@@ -28,43 +32,82 @@ namespace Orange
                 this.radius = radius;
             }
 
-            private bool inTouch = false;
-            private Vector2 position0;
-            private int fingerID;
+            /// <summary>
+            /// Informacja czy user totyka trackballa.
+            /// </summary>
+            private bool m_inTouch = false;
+
+            /// <summary>
+            /// Pozycja punktu [0;0] dla trackballa,
+            /// </summary>
+            private Vector2 m_position0;
+
+            /// <summary>
+            /// ID palca który dotyka trackballa.
+            /// </summary>
+            private int m_fingerID;
+            
+            /// <summary>
+            /// lewa krawędź wykrywania.
+            /// </summary>
             public float leftLimit;
+
+            /// <summary>
+            /// Prawa krawędź wykrywania.
+            /// </summary>
             public float rightLimit;
+
+            /// <summary>
+            /// Górna krawędź wykrywania.
+            /// </summary>
             public float topLimit;
+
+            /// <summary>
+            /// Dolna krawędź wykrywania.
+            /// </summary>
             public float bottomLimit;
+
+            /// <summary>
+            /// Promień rozmiaru trackballa.
+            /// </summary>
             public float radius;
+
+            /// <summary>
+            /// Pozycja wychylenia trackballa.
+            /// </summary>
+            /// <returns>Wspułczynnik wychylenia [-1,1].</returns>
             public Vector2 GetAxis()
             {
-               if (inTouch)
-               {
+                // User dotyka trackballa.
+                if (m_inTouch)
+                {
                    for (int i = 0; i < UnityEngine.Input.touchCount; i++)
                    {
-                        if (UnityEngine.Input.touches[i].fingerId == fingerID)
-                        {
+                       // Jeśli palec się zgadza
+                       if (UnityEngine.Input.touches[i].fingerId == m_fingerID)
+                       {
                             Vector2 position = UnityEngine.Input.touches[i].position;
                             position = new Vector2(position.x / Screen.width, position.y / Screen.height);
-                            Vector2 vector = new Vector2(position.x - position0.x , position.y - position0.y);
+                            Vector2 vector = new Vector2(position.x - m_position0.x , position.y - m_position0.y);
                             vector = new Vector2(Math.MinMaxLimit(vector.x,-radius,radius), Math.MinMaxLimit(vector.y,-radius,radius));
                             vector = new Vector2((vector.x / radius) * 10f, (vector.y / radius) * 10f);
                             return vector;
-                        }
+                       }
                     }
-                   inTouch = false;
-               }
-               else
-               {
-                   for (int i = 0; i < UnityEngine.Input.touchCount; i++)
-                   {
+                   m_inTouch = false;
+                }
+                // User nie dotyka trackballa
+                else
+                {
+                    for (int i = 0; i < UnityEngine.Input.touchCount; i++)
+                    {
                         Vector2 position = UnityEngine.Input.touches[i].position;
                         position = new Vector2(position.x / Screen.width, position.y / Screen.height);
                         if (position.x > leftLimit && position.x < rightLimit && position.y > topLimit && position.y < bottomLimit)
                         {
-                            fingerID = UnityEngine.Input.touches[i].fingerId;
-                            position0 = position;
-                            inTouch = true;
+                            m_fingerID = UnityEngine.Input.touches[i].fingerId;
+                            m_position0 = position;
+                            m_inTouch = true;
                         }
                     }
                 }
@@ -72,13 +115,11 @@ namespace Orange
             }
         }
 	
-	
-	
         /// <summary>
         /// Pobiera klawisz z klawiatury i dodaje znak do ciągu.
         /// </summary>
         /// <param name="text">Stary tekst.</param>
-        /// <param name="type">Typ znaków zdefiniowany przez wyrażenie regularne</param>
+        /// <param name="preg">Typ znaków zdefiniowany przez wyrażenie regularne</param>
         /// <returns>Zwraca zaktualizowany tekst</returns>
         static public string KeyboardReadString(string text, string preg)
         {
@@ -134,43 +175,41 @@ namespace Orange
 
 
         /// <summary>
-        /// Sprawdza czy kliknięto lub dotkięto ekranu. Każde zdarzenie jest wykrywane jednorazowo.
+        /// Sprawdza czy kliknięto lub dotkięto ekranu. Zdarzenie jest wykrywane jednorazowo.
         /// </summary>
-        /// <returns>0 jeśli brak akcji. 1 jeśli kliknięto lewym klawiszem myszy. 2 jeśli dotknięto ekranu.</returns>
-        static public int IsClicked()
+        /// <returns>bool</returns>
+        static public bool IsClicked()
         {
-            if (UnityEngine.Input.GetMouseButtonDown(0))
-                return 1;
+            if (UnityEngine.Input.GetMouseButtonUp(0))
+                return true;
             else if (UnityEngine.Input.touchCount > 0)
             {
-                if (UnityEngine.Input.GetTouch(0).phase == TouchPhase.Began)
-                    return 2;
-                else
-                    return 0;
+                if (UnityEngine.Input.GetTouch(0).phase == TouchPhase.Ended)
+                    return true;
             }
-            else
-                return 0;
+            return false;
         }
         
         /// <summary>
         /// Sprawdza czy klawisz myszy jest wciśnięty lub ekran jest dotykany. Zwraca wartość przez cały okres zdarzenia. 
         /// </summary>
-        /// <returns>0 gdy brak zdarzenia. 1 gdy klawisz myszy wciśnięty. 2 gdy ekran dotykany.</returns>
-        static public int IsInput()
+        /// <returns>bool</returns>
+        static public bool IsDown()
         {
-            if (UnityEngine.Input.GetMouseButtonDown(0))
-                return 1;
+            if (UnityEngine.Input.GetMouseButton(0))
+                return true;
             else if (UnityEngine.Input.touchCount > 0)
-                return 2;
+                return true;
             else
-                return 0;
+                return false;
         }
 
         /// <summary>
         /// Zwraca pozycję na mapie gdzie kliknięto lub dotknięto ekranu.
+        /// W przeciwnym wypadku null.
         /// </summary>
-        /// <returns>Wektor pozycji kliknięcia lub wektor zerowy.</returns>
-        static public Vector3 InputPosition()
+        /// <returns>Wektor pozycji kliknięcia</returns>
+        static public Vector3? InputClickPosition()
         {
             bool touchedScreen = false;
             Vector3 touchPosition3D = new Vector3();
@@ -183,10 +222,14 @@ namespace Orange
             }
             
             // palec
-            else if (UnityEngine.Input.touchCount > 0)
+            for(int i = 0; i < UnityEngine.Input.touchCount; i++)
             {
-                touchPosition3D = UnityEngine.Input.GetTouch(0).position;
-                touchedScreen = true;
+                if (UnityEngine.Input.GetTouch(i).phase == TouchPhase.Ended)
+                {
+                    touchPosition3D = UnityEngine.Input.GetTouch(i).position;
+                    touchedScreen = true;
+                    break;
+                }
             }
 
             // wykrycie pozycji
@@ -194,7 +237,7 @@ namespace Orange
             {
                 return Camera.main.ScreenToWorldPoint(touchPosition3D);
             }
-            return new Vector3(0, 0, 0);
+            return null;
         }
     }
 }
