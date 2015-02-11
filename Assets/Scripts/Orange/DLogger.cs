@@ -6,11 +6,6 @@ namespace Orange
 
     public class DLogger : MonoBehaviour
     {
-
-        public string LoggerPath;
-        public string LoggerName;
-
-
         // Use this for initialization
         void Start()
         {

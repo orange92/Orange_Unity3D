@@ -1,8 +1,8 @@
 ﻿#define DEBUG_LEVEL_LOG
-//#define DEBUG_LEVEL_WARN
-//#define DEBUG_LEVEL_ERROR
+#define DEBUG_LEVEL_WARN
+#define DEBUG_LEVEL_ERROR
 #define DEBUG_TOFILE
-//#define DEBUG_TOCONSOLE
+#define DEBUG_TOCONSOLE
 #define DEBUG_TOHTML
 
 using UnityEngine;
@@ -11,84 +11,16 @@ using System.IO;
 
 namespace Orange
 {
+    /// <summary>
+    /// Klasa generująca logi.
+    /// </summary>
     class D
     {
-        private static StreamWriter m_writer;
-        private static StreamWriter m_html;
+        #region Public_Variables
 
-        private static DLogger m_logger;
-
-        private static string m_logPath;
-        private static string m_logName;
-
-        static D()
-        {
-
-            GameObject _logger = GameObject.Find("DLogger");
-
-            if (_logger == null)
-            {
-                _logger = new GameObject();
-                _logger.name = "DLogger";
-                _logger.AddComponent("DLogger");
-            }
-
-            m_logger = _logger.GetComponent<DLogger>();
-
-            m_logPath = Application.dataPath + "\\";
-            m_logName = "dlogger";
-
-            if (m_logger.LoggerPath != "")
-            {
-                m_logPath = m_logger.LoggerPath;
-            }
-
-            if (m_logger.LoggerName != "")
-            {
-                m_logName = m_logger.LoggerName;
-            }
-
-            CreateLogFile();
-            CreateHtmlLogFile();
-
-            Application.RegisterLogCallback(logCallback);
-
-            LogTemplates();
-        }
-
-        public static void logCallback(string log, string stackTrace, LogType type)
-        {
-            // error gets a stack trace
-            if (type == LogType.Error)
-            {
-                System.Console.WriteLine(log);
-                System.Console.WriteLine(stackTrace);
-            }
-            else
-            {
-                System.Console.WriteLine(log);
-            }
-        }
-
-        [System.Diagnostics.Conditional("DEBUG_LEVEL_LOG")]
-        [System.Diagnostics.Conditional("DEBUG_LEVEL_WARN")]
-        [System.Diagnostics.Conditional("DEBUG_LEVEL_ERROR")]
-        public static void log(object format, params object[] paramList)
-        {
-            if (format is string)
-            {
-                LogToConsole(string.Format(format as string, paramList));
-                LogToFile(string.Format(format as string, paramList));
-                LogToHtml(Type.LOG, string.Format(format as string, paramList));
-            }
-            else
-            {
-                LogToConsole(format);
-                LogToFile(format);
-                LogToHtml(Type.LOG, format);
-            }
-        }
-
+        /// <summary>
+        /// Typy wpisów logu
+        /// </summary>
         public enum Type
         {
             AI,
@@ -113,91 +45,210 @@ namespace Orange
             LOG
         }
 
+        #endregion Public_Variables
+
+        #region Private_Variables
+
+        /// <summary>
+        /// Plik textowy z logami.
+        /// </summary>
+        private static StreamWriter m_writer;
+
+        /// <summary>
+        /// Plik HTML z logami.
+        /// </summary>
+        private static StreamWriter m_html;
+
+        /// <summary>
+        /// Funkcja dziedzicząca po MonoBehaviour odpowiedzialan za logi.
+        /// </summary>
+        private static DLogger m_logger;
+
+        /// <summary>
+        /// Katalog z plikami logów.
+        /// </summary>
+        private static string m_logPath;
+
+        /// <summary>
+        /// Nazwa pliku z logami.
+        /// </summary>
+        private static string m_logName;
+
+        #endregion Private_Variables
+
+        static D()
+        {
+            GameObject _logger = GameObject.Find("DLogger");
+
+            if (_logger == null)
+            {
+                _logger = new GameObject();
+                _logger.name = "DLogger";
+                _logger.AddComponent("DLogger");
+            }
+
+            m_logger = _logger.GetComponent<DLogger>();
+
+            m_logPath = Application.dataPath + "\\";
+            m_logName = "dlogger";
+
+            CreateLogFile();
+            CreateHtmlLogFile();
+        }
+
+        #region Public_Functions
+
+        /// <summary>
+        /// Dodanie logu.
+        /// </summary>
+        /// <param name="format">Treść logu.</param>
+        /// <param name="paramList">lista parametrów.</param>
         [System.Diagnostics.Conditional("DEBUG_LEVEL_LOG")]
-        [System.Diagnostics.Conditional("DEBUG_LEVEL_WARN")]
-        [System.Diagnostics.Conditional("DEBUG_LEVEL_ERROR")]
+        public static void log(object format, params object[] paramList)
+        {
+            log(Type.LOG, format, paramList);
+        }
+
+        /// <summary>
+        /// Dodanie logu
+        /// </summary>
+        /// <param name="type">Typ wpisu.</param>
+        /// <param name="format">Treść logu.</param>
+        /// <param name="paramList">lista parametrów.</param>
+        [System.Diagnostics.Conditional("DEBUG_LEVEL_LOG")]
         public static void log(Type type, object format, params object[] paramList)
         {
             if (format is string)
             {
-                LogToConsole(string.Format(format as string, paramList));
+                LogToConsole(Type.LOG, string.Format(format as string, paramList));
                 LogToFile(string.Format(format as string, paramList));
                 LogToHtml(type, string.Format(format as string, paramList));
             }
             else
             {
-                LogToConsole(format);
+                LogToConsole(Type.LOG, format);
                 LogToFile(format);
                 LogToHtml(type, format);
             }
         }
 
-
+        /// <summary>
+        /// Dodanie logu typu warning.
+        /// </summary>
+        /// <param name="format">Treść logu.</param>
+        /// <param name="paramList">lista parametrów.</param>
         [System.Diagnostics.Conditional("DEBUG_LEVEL_WARN")]
-        [System.Diagnostics.Conditional("DEBUG_LEVEL_ERROR")]
         public static void warn(object format, params object[] paramList)
         {
             if (format is string)
             {
-                LogToConsole(string.Format(format as string, paramList));
+                LogToConsole(Type.WARNING, string.Format(format as string, paramList));
                 LogToFile(string.Format(format as string, paramList));
                 LogToHtml(Type.WARNING, string.Format(format as string, paramList));
             }
             else
             {
-                LogToConsole(format);
+                LogToConsole(Type.WARNING, format);
                 LogToFile(format);
                 LogToHtml(Type.WARNING, format);
             }
         }
 
-
+        /// <summary>
+        /// Dodanie logu typu error.
+        /// </summary>
+        /// <param name="format">Treść logu.</param>
+        /// <param name="paramList">lista parametrów.</param>
         [System.Diagnostics.Conditional("DEBUG_LEVEL_ERROR")]
         public static void error(object format, params object[] paramList)
         {
             if (format is string)
             {
-                LogToConsole(string.Format(format as string, paramList));
+                LogToConsole(Type.ERROR, string.Format(format as string, paramList));
                 LogToFile(string.Format(format as string, paramList));
                 LogToHtml(Type.ERROR, string.Format(format as string, paramList));
             }
             else
             {
-                LogToConsole(format);
+                LogToConsole(Type.ERROR, format);
                 LogToFile(format);
                 LogToHtml(Type.ERROR, format);
             }
         }
 
+        /// <summary>
+        /// W trybie UNITY_EDITOR zatrzymuje grę i dodaje pusty wpis w logach unity.
+        /// </summary>
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
         [System.Diagnostics.Conditional("DEBUG_LEVEL_LOG")]
-        public static void assert(bool condition)
+        public static void assert()
         {
-            assert(condition, string.Empty, true);
+            assert(string.Empty, true);
         }
 
-
+        /// <summary>
+        /// Dodaje wpis w logach unity.
+        /// </summary>
+        /// <param name="assertString">Treść logu.</param>
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
         [System.Diagnostics.Conditional("DEBUG_LEVEL_LOG")]
-        public static void assert(bool condition, string assertString)
+        public static void assert(string assertString)
         {
-            assert(condition, assertString, false);
+            assert(assertString, false);
         }
 
-
+        /// <summary>
+        /// Dodaje wpis w logach unity i umożliwia zapauzowanie gry w trybie UNITY_EDITOR.
+        /// </summary>
+        /// <param name="assertString">Treść logu.</param>
+        /// <param name="pauseOnFail">Czy zapauzować scene?</param>
         [System.Diagnostics.Conditional("UNITY_EDITOR")]
         [System.Diagnostics.Conditional("DEBUG_LEVEL_LOG")]
-        public static void assert(bool condition, string assertString, bool pauseOnFail)
+        public static void assert(string assertString, bool pauseOnFail)
         {
-            if (!condition)
-            {
-                Debug.LogError("assert failed! " + assertString);
+            Debug.LogError(assertString);
 
-                if (pauseOnFail)
-                    Debug.Break();
-            }
+            if (pauseOnFail)
+                Debug.Break();
         }
 
+        /// <summary>
+        /// Generuje wszystkie typy logów (tak dla przykładu).
+        /// </summary>
+        public static void LogTemplates()
+        {
+            D.log("LOG Test");
+            D.warn("WARN Test");
+            D.error("ERROR Test");
+
+            D.log(Type.AI, "AI Log");
+            D.log(Type.ASSERT, "Asser Log");
+            D.log(Type.AUDIO, "Audio Log");
+            D.log(Type.CONTENT, "Content Log");
+            D.log(Type.EXCEPTION, "Exception Log");
+            D.log(Type.GAME_LOGIC, "GameLogic Log");
+            D.log(Type.GRAPHICS, "Graphics Log");
+            D.log(Type.GUI, "GUI Log");
+            D.log(Type.GUI_MESSAGE, "GUIMEssage Log");
+            D.log(Type.INPUT, "Input Log");
+            D.log(Type.NETWORKING, "Networking Log");
+            D.log(Type.NETWORK_CLIENT, "NetworkClient Log");
+            D.log(Type.NETWORK_SERVER, "NetworkServer Log");
+            D.log(Type.PHYSICS, "Physics Log");
+            D.log(Type.REPLAY, "Replay Log");
+            D.log(Type.SYSTEM, "System Log");
+            D.log(Type.TERRAIN, "Terrain Log");
+
+            D.log(Type.SYSTEM, "Dump Stack<br><br>{0}", System.Environment.StackTrace);
+        }
+
+        #endregion Public_Functions
+
+        #region Private_Functions
+
+        /// <summary>
+        /// Tworzy plik tekstowy z logami.
+        /// </summary>
         [System.Diagnostics.Conditional("DEBUG_TOFILE")]
         private static void CreateLogFile()
         {
@@ -207,6 +258,9 @@ namespace Orange
             LogToFile("Logger Active...");
         }
 
+        /// <summary>
+        /// Zamyka plik tekstowy z logami.
+        /// </summary>
         [System.Diagnostics.Conditional("DEBUG_TOFILE")]
         private static void CloseLogFile()
         {
@@ -214,6 +268,9 @@ namespace Orange
             m_writer.Close();
         }
 
+        /// <summary>
+        /// Tworzy plik HTML z logami.
+        /// </summary>
         [System.Diagnostics.Conditional("DEBUG_TOHTML")]
         private static void CreateHtmlLogFile()
         {
@@ -226,6 +283,9 @@ namespace Orange
             m_html.WriteLine("</head>");
         }
 
+        /// <summary>
+        /// Zamyka plik HTML z logami.
+        /// </summary>
         [System.Diagnostics.Conditional("DEBUG_TOHTML")]
         private static void CloseHtmlLogFile()
         {
@@ -233,12 +293,35 @@ namespace Orange
             m_html.Close();
         }
 
+        /// <summary>
+        /// Zapisuje logi w konsoli Unity.
+        /// </summary>
+        /// <param name="type">Typ logu.</param>
+        /// <param name="log">Treść logu.</param>
         [System.Diagnostics.Conditional("DEBUG_TOCONSOLE")]
-        private static void LogToConsole(object log)
+        private static void LogToConsole(Type type, object log)
         {
-            Debug.Log(log);
+            switch (type)
+            {
+                case Type.LOG:
+                    Debug.Log(log);
+                    break;
+                case Type.ERROR:
+                    Debug.LogError(log);
+                    break;
+                case Type.WARNING:
+                    Debug.LogWarning(log);
+                    break;
+                default:
+                    Debug.Log(log);
+                    break;
+            }
         }
 
+        /// <summary>
+        /// Zapisuje log do pliku tekstowego.
+        /// </summary>
+        /// <param name="log">Treść logu.</param>
         [System.Diagnostics.Conditional("DEBUG_TOFILE")]
         private static void LogToFile(object log)
         {
@@ -247,6 +330,11 @@ namespace Orange
             m_writer.WriteLine(_log);
         }
 
+        /// <summary>
+        /// Zapisuje log do HTML.
+        /// </summary>
+        /// <param name="type">Typ logu.</param>
+        /// <param name="log">Treść logu.</param>
         [System.Diagnostics.Conditional("DEBUG_TOHTML")]
         private static void LogToHtml(Type type, object log)
         {
@@ -256,9 +344,15 @@ namespace Orange
             string _val = log as string;
             string _log = string.Format(_val);
             m_html.Write(_log);
+//            m_html.Write("<br><br>" + System.Environment.StackTrace);
             m_html.Write("</p>");
         }
 
+        /// <summary>
+        /// Konwertuje typ logu na wartość string.
+        /// </summary>
+        /// <param name="type">Typ logu.</param>
+        /// <returns></returns>
         private static string TypeToString(Type type)
         {
             switch (type)
@@ -287,6 +381,9 @@ namespace Orange
             }
         }
 
+        /// <summary>
+        /// Koniec logowania zamknięcie pliku logów.
+        /// </summary>
         public static void Quit()
         {
             //Debug.Log("DLogger is Shutting Down...");
@@ -294,31 +391,6 @@ namespace Orange
             CloseLogFile();
         }
 
-        public static void LogTemplates()
-        {
-            D.log("LOG Test");
-            D.warn("WARN Test");
-            D.error("ERROR Test");
-
-            D.log(Type.AI, "AI Log");
-            D.log(Type.ASSERT, "Asser Log");
-            D.log(Type.AUDIO, "Audio Log");
-            D.log(Type.CONTENT, "Content Log");
-            D.log(Type.EXCEPTION, "Exception Log");
-            D.log(Type.GAME_LOGIC, "GameLogic Log");
-            D.log(Type.GRAPHICS, "Graphics Log");
-            D.log(Type.GUI, "GUI Log");
-            D.log(Type.GUI_MESSAGE, "GUIMEssage Log");
-            D.log(Type.INPUT, "Input Log");
-            D.log(Type.NETWORKING, "Networking Log");
-            D.log(Type.NETWORK_CLIENT, "NetworkClient Log");
-            D.log(Type.NETWORK_SERVER, "NetworkServer Log");
-            D.log(Type.PHYSICS, "Physics Log");
-            D.log(Type.REPLAY, "Replay Log");
-            D.log(Type.SYSTEM, "System Log");
-            D.log(Type.TERRAIN, "Terrain Log");
-
-            D.log(Type.SYSTEM, "Dump Stack<br><br>{0}", System.Environment.StackTrace);
-        }
+        #endregion Private_Functions
     }
 }
